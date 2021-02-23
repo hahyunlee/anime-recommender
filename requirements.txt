@@ -1,0 +1,7 @@
+certifi==2020.12.5
+numpy @ file:///opt/concourse/worker/volumes/live/317d3633-3972-452c-494a-92900a1134d5/volume/numpy_and_numpy_base_1607448161283/work
+pandas==1.2.1
+python-dateutil @ file:///home/ktietz/src/ci/python-dateutil_1611928101742/work
+pytz @ file:///tmp/build/80754af9/pytz_1612215392582/work
+scipy @ file:///opt/concourse/worker/volumes/live/11d090c1-57c4-400b-49ca-432f1f918ada/volume/scipy_1612469578292/work
+six @ file:///opt/concourse/worker/volumes/live/34b5b2b5-c9cb-44fb-4b8e-8a9a881bfa35/volume/six_1605205329242/work
