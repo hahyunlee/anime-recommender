@@ -116,7 +116,7 @@ class AlsRecommender:
         """
         # create new user rdd
         user_rdd = self.sc.parallelize(
-            [(user_id, anime_id, 5.0) for anime_id in anime_ids])
+            [(user_id, anime_id, 10.0) for anime_id in anime_ids])
         # transform to user rows
         user_rows = user_rdd.map(
             lambda x: Row(
@@ -206,7 +206,7 @@ class AlsRecommender:
             self._make_inference(self.model, fav_anime, n_recommendations)
 
         anime_ids = [r[0] for r in raw_recommends]
-        scores = [r[1] for r in raw_recommends]
+        # scores = [r[1] for r in raw_recommends]
 
         print('It took my system {:.2f}s to make inference \n\
               '.format(time.time() - t0))
@@ -219,8 +219,7 @@ class AlsRecommender:
         # print recommendations
         print('Recommendations for {}:'.format(fav_anime))
         for i in range(len(anime_titles)):
-            print('{0}: {1}, with rating '
-                  'of {2}'.format(i + 1, anime_titles[i], scores[i]))
+            print('{0}: {1}'.format(i + 1, anime_titles[i]))
 
 
 def tune_ALS(train_data, validation_data, maxIter, regParams, ranks):
