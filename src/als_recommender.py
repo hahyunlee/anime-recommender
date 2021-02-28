@@ -65,7 +65,6 @@ class AlsRecommender:
         del train, val, test, predictions, evaluator
         gc.collect()
 
-
     def set_model_params(self, maxIter, regParam, rank):
         """
         Set model params for pyspark.ml.recommendation.ALS
@@ -131,7 +130,6 @@ class AlsRecommender:
         # append to ratings_df
         self.ratings_df = self.ratings_df.union(user_df)
 
-
     def _create_inference_data(self, user_id, anime_ids):
         """
         create a user with all animes except ones were rated for inferencing
@@ -155,7 +153,6 @@ class AlsRecommender:
         inference_df = self.spark.createDataFrame(inference_raw) \
             .select(['user_id', 'anime_id'])
         return inference_df
-
 
     def _make_inference(self, model, fav_anime, n_recommendations):
         """
@@ -190,7 +187,6 @@ class AlsRecommender:
             .rdd.map(lambda r: (r[0], r[1])) \
             .take(n_recommendations)
 
-
     def make_recommendations(self, fav_anime, n_recommendations):
         """
         make top n anime recommendations
@@ -200,7 +196,7 @@ class AlsRecommender:
         n_recommendations: int, top n recommendations
         """
         # make inference and get raw recommendations
-        print('Recommendation system start to make inference ...')
+        print('Recommendation system starting to make an inference...')
         t0 = time.time()
         raw_recommends = \
             self._make_inference(self.model, fav_anime, n_recommendations)
@@ -208,7 +204,7 @@ class AlsRecommender:
         anime_ids = [r[0] for r in raw_recommends]
         # scores = [r[1] for r in raw_recommends]
 
-        print('It took my system {:.2f}s to make inference \n\
+        print('It took my system {:.2f}s to make an inference \n\
               '.format(time.time() - t0))
         # get anime titles
         anime_titles = self.anime_df \
@@ -220,7 +216,6 @@ class AlsRecommender:
         print('Recommendations for {}:'.format(fav_anime))
         for i in range(len(anime_titles)):
             print('{0}: {1}'.format(i + 1, anime_titles[i]))
-
 
 def tune_ALS(train_data, validation_data, maxIter, regParams, ranks):
     """
@@ -267,9 +262,7 @@ def tune_ALS(train_data, validation_data, maxIter, regParams, ranks):
                 best_model = model
 
     print('\n The best model has {} latent factors and regularization = {}'.format(best_rank, best_regularization))
-
     return best_model
-
 
 def parse_args():
     parser = argparse.ArgumentParser(
