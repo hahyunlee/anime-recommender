@@ -3,7 +3,6 @@ import argparse
 import time
 import gc
 import math
-import numpy as np
 
 # spark imports
 from pyspark.sql import SparkSession, Row
@@ -16,7 +15,6 @@ class AlsRecommender:
     """
     Class implements alternating least squares from Spark
     """
-
     def __init__(self, spark_session, path_anime, path_ratings):
         self.spark = spark_session
         self.sc = spark_session.sparkContext
@@ -30,12 +28,14 @@ class AlsRecommender:
             ratingCol='rating',
             coldStartStrategy="drop")
 
+
     def _load_file(self, filepath):
         """
         Load csv file into Spark DF
         """
         return self.spark.read.load(filepath, format='csv',
                                     header=True, inferSchema=True)
+
 
     def tune_model(self, maxIter, regParams, ranks, split_ratio=(0.6, 0.2, 0.2)):
         """
@@ -59,11 +59,12 @@ class AlsRecommender:
                                         predictionCol="prediction")
         rmse = evaluator.evaluate(predictions)
 
-        print('The out-of-sample RMSE of the best tuned model is:', rmse)
+        print('The out-of-sample RMSE from the best tuned model is:', rmse)
 
         # garbage clean up
         del train, val, test, predictions, evaluator
         gc.collect()
+
 
     def set_model_params(self, maxIter, regParam, rank):
         """
@@ -76,7 +77,7 @@ class AlsRecommender:
         """
         self.model = ALS(userCol='user_id', itemCol='anime_id', rank=rank, maxIter=maxIter, regParam=regParam)
 
-    def _regex_matching(self, fav_anime):
+    def _wildcard_matching(self, fav_anime):
         """
         return the closest matches via SQL regex.
         If no match found, return None
@@ -95,8 +96,9 @@ class AlsRecommender:
             ).like('%{}%'.format(fav_anime.lower()))
         ) \
             .select('anime_id', 'name')
+
         if not len(matches_df.take(1)):
-            print('Oops! No match is found')
+            print('No match is found.')
         else:
             anime_ids = matches_df.rdd.map(lambda r: r[0]).collect()
             names = matches_df.rdd.map(lambda r: r[1]).collect()
@@ -129,6 +131,7 @@ class AlsRecommender:
         # append to ratings_df
         self.ratings_df = self.ratings_df.union(user_df)
 
+
     def _create_inference_data(self, user_id, anime_ids):
         """
         create a user with all animes except ones were rated for inferencing
@@ -153,6 +156,7 @@ class AlsRecommender:
             .select(['user_id', 'anime_id'])
         return inference_df
 
+
     def _make_inference(self, model, fav_anime, n_recommendations):
         """
         return top n anime recommendations based on user's input anime
@@ -165,10 +169,12 @@ class AlsRecommender:
         ------
         list of top n similar anime recommendations
         """
-        # create a userId
+        # create a new user id
         user_id = self.ratings_df.agg({"user_id": "max"}).collect()[0][0] + 1
+
         # get anime_ids of favorite animes
-        anime_ids = self._regex_matching(fav_anime)
+        anime_ids = self._wildcard_matching(fav_anime)
+
         # append new user with his/her ratings into data
         self._append_ratings(user_id, anime_ids)
         # matrix factorization
@@ -177,13 +183,13 @@ class AlsRecommender:
         inference_df = self._create_inference_data(user_id, anime_ids)
         # make inference
 
-        results = model.transform(inference_df) \
-            .select(['anime_id', 'prediction']).na.drop()
+        results = model.transform(inference_df).select(['anime_id', 'prediction']).na.drop()
 
         return results \
             .orderBy('prediction', ascending=False) \
             .rdd.map(lambda r: (r[0], r[1])) \
             .take(n_recommendations)
+
 
     def make_recommendations(self, fav_anime, n_recommendations):
         """
@@ -198,6 +204,7 @@ class AlsRecommender:
         t0 = time.time()
         raw_recommends = \
             self._make_inference(self.model, fav_anime, n_recommendations)
+
         anime_ids = [r[0] for r in raw_recommends]
         scores = [r[1] for r in raw_recommends]
 
@@ -216,7 +223,7 @@ class AlsRecommender:
                   'of {2}'.format(i + 1, anime_titles[i], scores[i]))
 
 
-def tune_ALS(model, train_data, validation_data, maxIter, regParams, ranks):
+def tune_ALS(train_data, validation_data, maxIter, regParams, ranks):
     """
     grid search function to select the best model based on RMSE of
     validation data
@@ -237,6 +244,7 @@ def tune_ALS(model, train_data, validation_data, maxIter, regParams, ranks):
     best_rank = -1
     best_regularization = 0
     best_model = None
+
     for rank in ranks:
         for reg in regParams:
             # get ALS model
@@ -252,15 +260,15 @@ def tune_ALS(model, train_data, validation_data, maxIter, regParams, ranks):
                                             labelCol="rating",
                                             predictionCol="prediction")
             rmse = evaluator.evaluate(predictions)
-            print('{} latent factors and regularization = {}: '
-                  'validation RMSE is {}'.format(rank, reg, rmse))
+            print('{} latent factors and regularization = {}: validation RMSE is {}'.format(rank, reg, rmse))
             if rmse < min_error:
                 min_error = rmse
                 best_rank = rank
                 best_regularization = reg
                 best_model = model
-    print('\nThe best model has {} latent factors and '
-          'regularization = {}'.format(best_rank, best_regularization))
+
+    print('\n The best model has {} latent factors and regularization = {}'.format(best_rank, best_regularization))
+
     return best_model
 
 
@@ -290,16 +298,18 @@ if __name__ == '__main__':
     anime_title = args.anime_title
 
     top_n = args.top_n
-    # initial spark
+    # initialize spark session
     spark = SparkSession \
         .builder \
         .appName("anime recommender") \
         .getOrCreate()
-    # initial recommender system
+
+    # initialize recommender system
     recommender = AlsRecommender(
         spark,
         os.path.join(data_path, anime_filename),
         os.path.join(data_path, ratings_filename))
+
     # set params
     recommender.set_model_params(10, 0.05, 20)
     # make recommendations
