@@ -263,6 +263,7 @@ def tune_ALS(model, train_data, validation_data, maxIter, regParams, ranks):
           'regularization = {}'.format(best_rank, best_regularization))
     return best_model
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="Anime Recommender",
@@ -278,7 +279,6 @@ def parse_args():
     parser.add_argument('--top_n', type=int, default=10,
                         help='top n anime recommendations')
     return parser.parse_args()
-
 
 
 if __name__ == '__main__':
