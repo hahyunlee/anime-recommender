@@ -303,7 +303,7 @@ if __name__ == '__main__':
         os.path.join(data_path, ratings_filename))
 
     # set params
-    recommender.set_model_params(10, 0.05, 20)
+    recommender.set_model_params(10, 0.2, 10)
     # make recommendations
     recommender.make_recommendations(anime_title, top_n)
     # stop
