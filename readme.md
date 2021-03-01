@@ -94,7 +94,8 @@ Please refer to `notebooks/knn_recommender.ipynb` notebook to view more in-depth
 1) Load anime and ratings data
 2) Prepare sparse matrix from for nearest neighbors model fitting.
 3) Match input string with the most similar title in the database with fuzzy matching (python library)
-4) Fit model with cosine similarity (explain why cosine (find orientation since same inner product space not magnitude) add cosine similarity formula)
+4) Fit model with cosine similarity
+   - Cosine similarity used to find orientation since anime ratings data are all in the same inner product space
 5) Find k nearest neighbors and order anime based on highest similarity score
 
 ### ALS Method Process.
